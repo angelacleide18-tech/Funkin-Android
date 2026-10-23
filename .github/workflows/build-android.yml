@@ -1,0 +1,93 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - preview/public-playtest
+    paths:
+      - .github/workflows/build-android.yml
+      - source/**
+      - templates/**
+      - project.hxp
+      - hmm.json
+      - assets
+      - art
+  pull_request:
+    branches:
+      - preview/public-playtest
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Download pinned public assets
+        run: git submodule update --init --depth 1 assets art
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android toolchain
+        run: |
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0" "ndk;27.2.12479018"
+          echo "ANDROID_SDK=$ANDROID_HOME" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/27.2.12479018" >> "$GITHUB_ENV"
+
+      - name: Set up Haxe
+        uses: krdlab/setup-haxe@v1
+        with:
+          haxe-version: 4.3.7
+
+      - name: Install Lime host build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++ libx11-dev libxi-dev libxext-dev libxinerama-dev libxrandr-dev libgl-dev libgl1-mesa-dev libasound2-dev libpulse-dev
+
+      - name: Install pinned Haxe dependencies
+        run: |
+          haxelib --never newrepo
+          haxelib --global git haxelib https://github.com/FunkinCrew/haxelib.git funkin-patches --skip-dependencies
+          haxelib --global git hmm https://github.com/FunkinCrew/hmm.git funkin-patches
+          haxelib --global run hmm install -q
+          pushd .haxelib/hxcpp/git/tools/hxcpp
+          haxe compile.hxml
+          popd
+
+      - name: Build Lime host tools and Android libraries
+        run: |
+          haxelib run lime rebuild cpp -64
+          haxelib run lime rebuild android -debug -arm64
+
+      - name: Build installable test APK
+        # Debug uses Android's test signing key, without store credentials or .env.
+        run: haxelib run lime build android -debug -arm64 -DEXCLUDE_ARMV7 -DNO_REDIRECT_ASSETS_FOLDER
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Funkin-Android-arm64-debug
+          path: export/debug/android/bin/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14

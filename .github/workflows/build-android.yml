@@ -54,6 +54,7 @@ jobs:
           sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0" "ndk;27.2.12479018"
           echo "ANDROID_SDK=$ANDROID_HOME" >> "$GITHUB_ENV"
           echo "ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/27.2.12479018" >> "$GITHUB_ENV"
+          echo "ANDROID_SETUP=true" >> "$GITHUB_ENV"
 
       - name: Set up Haxe
         uses: krdlab/setup-haxe@v1
@@ -63,7 +64,7 @@ jobs:
       - name: Install Lime host build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y g++ libx11-dev libxi-dev libxext-dev libxinerama-dev libxrandr-dev libgl-dev libgl1-mesa-dev libasound2-dev libpulse-dev
+          sudo apt-get install -y g++ libx11-dev libxi-dev libxext-dev libxinerama-dev libxrandr-dev libgl-dev libgl1-mesa-dev libasound2-dev libpulse-dev libwayland-bin libwayland-dev libxkbcommon-dev libegl1-mesa-dev libpipewire-0.3-dev libdecor-0-dev
 
       - name: Install pinned Haxe dependencies
         run: |
@@ -71,6 +72,7 @@ jobs:
           haxelib --global git haxelib https://github.com/FunkinCrew/haxelib.git funkin-patches --skip-dependencies
           haxelib --global git hmm https://github.com/FunkinCrew/hmm.git funkin-patches
           haxelib --global run hmm install -q
+          haxelib fixrepo
           pushd .haxelib/hxcpp/git/tools/hxcpp
           haxe compile.hxml
           popd

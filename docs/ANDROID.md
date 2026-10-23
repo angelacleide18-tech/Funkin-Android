@@ -44,6 +44,7 @@ SDK already installed and `sdkmanager` on `PATH`:
 sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0" "ndk;27.2.12479018"
 export ANDROID_SDK="$ANDROID_HOME"
 export ANDROID_NDK_ROOT="$ANDROID_HOME/ndk/27.2.12479018"
+export ANDROID_SETUP=true
 haxelib run lime rebuild android -debug -arm64
 haxelib run lime build android -debug -arm64 -DEXCLUDE_ARMV7 -DNO_REDIRECT_ASSETS_FOLDER
 ```

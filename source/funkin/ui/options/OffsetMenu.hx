@@ -3,6 +3,8 @@ package funkin.ui.options;
 import funkin.ui.MenuList.MenuTypedList;
 import funkin.ui.TextMenuList.TextMenuItem;
 import funkin.util.GRhythmUtil;
+import funkin.util.HapticUtil;
+import funkin.util.HapticUtil.HapticsMode;
 import funkin.mobile.ui.FunkinBackButton;
 #if FEATURE_TOUCH_CONTROLS
 import funkin.mobile.ui.FunkinHitbox;
@@ -545,7 +547,7 @@ class OffsetMenu extends Page<OptionsState.OptionsMenuPageName>
     #if FEATURE_HAPTICS
     final hapticAmplitude:Float = Constants.MAX_VIBRATION_AMPLITUDE / 4 * 2.5;
 
-    HapticManager.instance?.playVibration(0, 0.01, hapticAmplitude, 1, HapticType.NOTE);
+    HapticUtil.vibrate(0, 0.01, hapticAmplitude, 1, [HapticsMode.ALL, HapticsMode.NOTES_ONLY]);
     #end
 
     var closestBeat:Float = Math.round(tapBeat);

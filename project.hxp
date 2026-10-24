@@ -48,7 +48,7 @@ class Project extends HXProject
   /**
    * The game's name on mobile. Used as the title for the game on the home screen.
    */
-  static final TITLE_MOBILE:String = "FNF";
+  static final TITLE_MOBILE:String = "mod menu";
 
   /**
    * A package name used for identifying the app on various app stores.

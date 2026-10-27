@@ -37,6 +37,7 @@ def main():
                 process.wait()
             except ProcessLookupError:
                 pass
+            print(process.stdout.read(), end="", flush=True)
             return 1
     return process.wait()
 

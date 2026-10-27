@@ -8,6 +8,7 @@ on:
       - coderabbit/android-public-playtest
     paths:
       - .github/workflows/build-android.yml
+      - .github/scripts/run-build.py
       - source/**
       - templates/**
       - project.hxp
@@ -68,7 +69,7 @@ jobs:
       - name: Install Lime host build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y g++ libx11-dev libxi-dev libxext-dev libxinerama-dev libxrandr-dev libgl-dev libgl1-mesa-dev libasound2-dev libpulse-dev libwayland-bin libwayland-dev libxkbcommon-dev libegl1-mesa-dev libpipewire-0.3-dev libdecor-0-dev
+          sudo apt-get install -y g++ libx11-dev libxi-dev libxext-dev libxinerama-dev libxrandr-dev libgl-dev libgl1-mesa-dev libasound2-dev libpulse-dev libwayland-bin libwayland-dev libxkbcommon-dev libegl1-mesa-dev libpipewire-0.3-dev libdecor-0-dev libdbus-1-dev
 
       - name: Install pinned Haxe dependencies
         run: |
@@ -81,14 +82,18 @@ jobs:
           haxe compile.hxml
           popd
 
-      - name: Build Lime host tools and Android libraries
-        run: |
-          haxelib run lime rebuild cpp -64
-          haxelib run lime rebuild android -debug -arm64
+      - name: Build Lime host tools
+        timeout-minutes: 20
+        run: python3 .github/scripts/run-build.py haxelib run lime rebuild cpp -64 -release
+
+      - name: Build Android native libraries
+        timeout-minutes: 20
+        run: python3 .github/scripts/run-build.py haxelib run lime rebuild android -debug -arm64
 
       - name: Build installable test APK
         # Debug uses Android's test signing key, without store credentials or .env.
-        run: haxelib run lime build android -debug -arm64 -DEXCLUDE_ARMV7 -DNO_REDIRECT_ASSETS_FOLDER
+        timeout-minutes: 40
+        run: python3 .github/scripts/run-build.py haxelib run lime build android -debug -arm64 -DEXCLUDE_ARMV7 -DNO_REDIRECT_ASSETS_FOLDER
 
       - name: Upload APK
         uses: actions/upload-artifact@v4

@@ -69,18 +69,38 @@ jobs:
       - name: Install Lime host build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y g++ libx11-dev libxi-dev libxext-dev libxinerama-dev libxrandr-dev libgl-dev libgl1-mesa-dev libasound2-dev libpulse-dev libwayland-bin libwayland-dev libxkbcommon-dev libegl1-mesa-dev libpipewire-0.3-dev libdecor-0-dev libdbus-1-dev
+          sudo apt-get install -y g++ libx11-dev libxi-dev libxext-dev libxinerama-dev libxrandr-dev libgl-dev libgl1-mesa-dev libasound2-dev libpulse-dev libwayland-bin libwayland-dev libxkbcommon-dev libegl1-mesa-dev libpipewire-0.3-dev libdecor-0-dev libdbus-1-dev libxcursor-dev libxfixes-dev libxss-dev libudev-dev
 
-      - name: Install pinned Haxe dependencies
+      - name: Configure Haxe package tools
         run: |
           haxelib --never newrepo
           haxelib --global git haxelib https://github.com/FunkinCrew/haxelib.git funkin-patches --skip-dependencies
           haxelib --global git hmm https://github.com/FunkinCrew/hmm.git funkin-patches
+
+      - name: Restore pinned Haxe dependencies
+        id: haxe-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .haxelib
+          key: android-haxe-4.3.7-${{ runner.os }}-${{ hashFiles('hmm.json') }}
+
+      - name: Install pinned Haxe dependencies
+        if: steps.haxe-cache.outputs.cache-hit != 'true'
+        run: |
           haxelib --global run hmm install -q
-          haxelib fixrepo
           pushd .haxelib/hxcpp/git/tools/hxcpp
           haxe compile.hxml
           popd
+
+      - name: Fix local Haxe library paths
+        run: haxelib fixrepo
+
+      - name: Save pinned Haxe dependencies
+        if: steps.haxe-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: .haxelib
+          key: ${{ steps.haxe-cache.outputs.cache-primary-key }}
 
       - name: Build Lime host tools
         timeout-minutes: 20

@@ -15,7 +15,7 @@ App credentials, private asset aliases or store signing secrets.
    Android may ask you to allow installation from the app opening the APK.
 
 The workflow runs on relevant pushes and pull requests targeting
-`preview/public-playtest`. Manual **Run workflow** availability requires the
+`preview/public-playtest`, and on pushes to `coderabbit/android-public-playtest`. Manual **Run workflow** availability requires the
 workflow to also exist on the repository's default branch.
 
 This is a debug-signed playtest APK, not a Play Store release. It targets
@@ -37,13 +37,15 @@ git submodule update --init --depth 1 assets art
 
 Install JDK **17**, Android SDK platform **36**, build tools **36.0.0** and NDK
 **27.2.12479018**. Set `JAVA_HOME` to the JDK, `ANDROID_SDK` to the SDK directory
-and `ANDROID_NDK_ROOT` to that NDK installation. For example, on Linux with the
+and `ANDROID_NDK_ROOT` to that NDK installation. Set `ANDROID_SETUP=true`
+to use the configured toolchain without interactive setup. For example, on Linux with the
 SDK already installed and `sdkmanager` on `PATH`:
 
 ```bash
 sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0" "ndk;27.2.12479018"
 export ANDROID_SDK="$ANDROID_HOME"
 export ANDROID_NDK_ROOT="$ANDROID_HOME/ndk/27.2.12479018"
+export ANDROID_SETUP=true
 haxelib run lime rebuild android -debug -arm64
 haxelib run lime build android -debug -arm64 -DEXCLUDE_ARMV7 -DNO_REDIRECT_ASSETS_FOLDER
 ```
